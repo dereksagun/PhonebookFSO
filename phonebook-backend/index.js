@@ -1,8 +1,9 @@
 const express = require('express')
 var morgan = require('morgan')
 
-app.use(express.static('dist'))
+
 const app = express()
+app.use(express.static('dist'))
 /*
 // To use any middleware, you need to use the app.use()
 app.use(morgan((token,request, response) => {
