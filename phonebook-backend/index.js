@@ -1,6 +1,7 @@
+require('dotenv').config()
 const express = require('express')
+const Contact = require('./models/contact')
 var morgan = require('morgan')
-
 
 const app = express()
 app.use(express.static('dist'))
@@ -18,30 +19,6 @@ morgan.token('body', (req, res) => { return JSON.stringify(req.body) })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 app.use(express.json())
 
-
-
-let phonebook = [
-    { 
-      "id": "1",
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": "2",
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": "3",
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": "4",
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
 /*
 const requestLogger = (request, response, next) => {
     console.log('Method:', request.method)
@@ -53,38 +30,69 @@ const requestLogger = (request, response, next) => {
   
 app.use(requestLogger)
 */
-app.get('/api/persons', (request, response) => {
-    response.json(phonebook)
-})
 
-app.get('/info', (request, response) => {
-    const numberOfContacts = phonebook.length
+app.get('/info', (request, response, next) => {
+    
     const now = new Date()
 
-    response.send(
-        `<div>
-        Phonebook has info for ${numberOfContacts} people
-        <br></br>
-        ${now} 
-        </div>`
-)
-})
-
-app.get('/api/persons/:id', (request, response) => {
-    const contact = phonebook.find(contact => contact.id === request.params.id)
-
-    if(contact){
-        response.json(contact)
-    }else{
-        response.status(404).end()
-    }
-})
-
-app.delete('/api/persons/:id', (request, response) => {
-    const id = request.params.id
-    phonebook = phonebook.filter(p => p.id !== id)
+    Contact.countDocuments({}).then(count => {
+        return response.send(
+            `<div>
+            Phonebook has info for ${count} people
+            <br></br>
+            ${now} 
+            </div>`
+        )
+    }).catch(error => next(error))
     
-    response.status(204).end()
+})
+
+
+app.get('/api/persons', (request, response, next) => {
+    Contact.find({}).then(result => {
+        response.json(result)
+    }).catch(error => next(error))
+    
+})
+
+app.get('/api/persons/:id', (request, response, next) => {
+    Contact.findById(request.params.id).then(contact => {
+        if(!contact){
+            return response.status(404).end()
+        }
+        return response.json(contact)
+    }).catch(error => next(error))
+})
+
+app.delete('/api/persons/:id', (request, response, next) => {
+    const id = request.params.id
+
+    Contact.findByIdAndDelete(id).then(result => {
+        return response.status(204).end()
+    }).catch(error => next(error))
+    
+})
+
+app.put('/api/persons/:id', (request, response, next) => {
+    const {name, phone} = request.body
+    /*
+    find the id
+        if not exists
+            204
+        if it exists
+            replace
+    */
+   Contact.findById(request.params.id).then(contact => {
+    if(!contact){
+        return response.status(204).end()
+    }
+    contact.name = name
+    contact.phone = phone
+
+    contact.save().then(savedContact => {
+        return response.json(savedContact)
+    }).catch(error => next(error))
+   })
 })
 
 app.post('/api/persons', (request, response) => {
@@ -94,11 +102,19 @@ app.post('/api/persons', (request, response) => {
         return response.json({
             error: 'contact name missing'
         })
-    }else if(!body.number){
+    }else if(!body.phone){
         return response.json({
             error:'contact number missing'
         })
     }else{
+        const contact = new Contact({
+            ...body
+        })
+
+        contact.save().then(savedContact => {
+            response.json(savedContact)
+        })
+        /* // Checks if contact already exists
         const alreadyExists = phonebook.find(p => p.name === body.name)
         if(alreadyExists){
             return response.json({
@@ -113,16 +129,28 @@ app.post('/api/persons', (request, response) => {
             phonebook = phonebook.concat(person)
             return response.json(person)
         }
+            */
     }
 
 })
-/*
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
   }
+  // handler of requests with unknown endpoint
+  app.use(unknownEndpoint)
   
-app.use(unknownEndpoint)
-*/
+  
+  const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+  
+    if (error.name === 'CastError') {
+      return response.status(400).send({ error: 'malformatted id' })
+    } 
+  
+    next(error)
+  }
+  // this has to be the last loaded middleware, also all the routes should be registered before this!
+  app.use(errorHandler)
 
 const PORT = process.env.PORT || 3002
 app.listen(PORT, () => {

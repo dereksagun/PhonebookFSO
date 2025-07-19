@@ -63,15 +63,7 @@ const App = () => {
       }, 5000)
       setNewName('')
       setNewPhone('')
-      /*
-      axios
-        .post('http://localhost:3001/persons', personObject)
-        .then(response => {
-          setPersons(persons.concat(response.data))
-        })
-      setNewName('')
-      setNewPhone('')
-      */
+      
     }else{
       const replacePerson = window.confirm(`${newName} is already in the Phonebook. Do you want to replace`)
       if(replacePerson){
@@ -110,7 +102,7 @@ const App = () => {
       .then(response => {
         console.log(response)
         console.log('Is Deleted')
-        setPersons(persons.filter(person => person.id !== response.id))
+        setPersons(persons.filter(person => person.id !== id))
       })
 
   }
