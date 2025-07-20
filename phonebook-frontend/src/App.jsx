@@ -50,6 +50,16 @@ const App = () => {
         .createPerson(personObject)
         .then(response => {
           setPersons(persons.concat(response))
+          setMessageObject({
+            message: `Added ${personObject.name}`,
+            notificationType: 'success'
+          })
+          setTimeout(() => {
+            setMessageObject({
+              message: null,
+              notificationType: null
+            })
+          }, 5000)
         })
         .catch(error => {
           setMessageObject({
@@ -64,16 +74,7 @@ const App = () => {
           }, 5000)
           console.log(error.response.data.error)
         })
-      setMessageObject({
-          message: `Added ${personObject.name}`,
-          notificationType: 'success'
-      })
-      setTimeout(() => {
-        setMessageObject({
-          message: null,
-          notificationType: null
-        })
-      }, 5000)
+      
       setNewName('')
       setNewPhone('')
       
