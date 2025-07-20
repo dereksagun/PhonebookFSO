@@ -95,7 +95,7 @@ app.put('/api/persons/:id', (request, response, next) => {
    })
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
     const body = request.body
     
     if(!body.name){
@@ -111,9 +111,11 @@ app.post('/api/persons', (request, response) => {
             ...body
         })
 
-        contact.save().then(savedContact => {
-            response.json(savedContact)
-        })
+        contact.save()
+            .then(savedContact => {
+                response.json(savedContact)
+            })
+            .catch(error => next(error))
         /* // Checks if contact already exists
         const alreadyExists = phonebook.find(p => p.name === body.name)
         if(alreadyExists){
@@ -144,8 +146,10 @@ const unknownEndpoint = (request, response) => {
     console.error(error.message)
   
     if (error.name === 'CastError') {
-      return response.status(400).send({ error: 'malformatted id' })
-    } 
+        return response.status(400).send({ error: 'malformatted id' })
+    } else if(error.name === "ValidationError"){
+        return response.status(400).json({error: error.message})
+    }
   
     next(error)
   }

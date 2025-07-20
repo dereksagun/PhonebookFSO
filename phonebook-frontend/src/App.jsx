@@ -51,6 +51,19 @@ const App = () => {
         .then(response => {
           setPersons(persons.concat(response))
         })
+        .catch(error => {
+          setMessageObject({
+            message: error.response.data.error,
+            notificationType: "error"
+          })
+          setTimeout(() => {
+            setMessageObject({
+              message: null,
+              notificationType: null
+            })
+          }, 5000)
+          console.log(error.response.data.error)
+        })
       setMessageObject({
           message: `Added ${personObject.name}`,
           notificationType: 'success'
