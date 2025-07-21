@@ -3,7 +3,6 @@ import Filter from './components/Filter'
 import Form from './components/Form'
 import Persons from './components/Persons'
 import phonebookService from './services/phonebook'
-import phonebook from './services/phonebook'
 
 const Notification = ({message, notificationType}) => {
   if(message === null) {
@@ -87,7 +86,7 @@ const App = () => {
           .then(response => {
             setPersons(persons.map(person => person.id !== response.id ? person : response))
           })
-          .catch(error => {
+          .catch(() => {
             setPersons(persons.filter(person => person.id !== personObject.id))
             setMessageObject(
               {

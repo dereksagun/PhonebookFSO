@@ -29,7 +29,7 @@ if(process.argv.length > 3){
     phone: phone
   })
 
-  contact.save().then(result => {
+  contact.save().then(() => {
     console.log(`Added ${name} number ${phone} to the phonebook`)
     mongoose.connection.close()
   })

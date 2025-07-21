@@ -21,7 +21,7 @@ const createPerson = (personObject) => {
 const deletePerson = (id) => {
     return(
         axios
-            .delete(baseURL + '\/' + id)
+            .delete(baseURL + '/' + id)
             .then(response => response.data)
     )
 }
@@ -29,7 +29,7 @@ const deletePerson = (id) => {
 const replaceNumber = (id,personObject) =>{
     return(
         axios
-            .put(baseURL + '\/' + personObject.id, personObject)
+            .put(baseURL + '/' + personObject.id, personObject)
             .then(response => response.data)
     )
 }
